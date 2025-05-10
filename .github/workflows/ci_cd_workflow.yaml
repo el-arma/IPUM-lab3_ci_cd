@@ -34,25 +34,25 @@ jobs:
           run: uv run pytest tests
 
         
-    deployment:
-        name: Deploy ONNX model
-        runs-on: ubuntu-latest
-        defaults:
-          run:
-            shell: bash
-            working-directory: ./polish-sentiment-app
-        steps:
-          - name: Checkout repository
-            uses: actions/checkout@v4
+  deployment:
+      name: Deploy ONNX model
+      runs-on: ubuntu-latest
+      defaults:
+        run:
+          shell: bash
+          working-directory: ./polish-sentiment-app
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
 
-          - name: Setup uv
-            run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        - name: Setup uv
+          run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
-          - name: Install dependencies
-            run: uv sync --group deployment
+        - name: Install dependencies
+          run: uv sync --group deployment
 
-          - name: Download model artifacts
-            run: uv run python main.py --script download
+        - name: Download model artifacts
+          run: uv run python main.py --script download
 
-          - name: Export model to ONNX
-            run: uv run python main.py --script export
+        - name: Export model to ONNX
+          run: uv run python main.py --script export
