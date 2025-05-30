@@ -3,11 +3,6 @@
 
 name: CI/CD workflow HOMEWORK
 
-on: workflow_dispatch
-
-
-
-
 # Trigger workflow manually with input selection
 on:
   workflow_dispatch:
