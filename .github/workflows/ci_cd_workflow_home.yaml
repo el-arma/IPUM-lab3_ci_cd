@@ -1,0 +1,84 @@
+# our CI/CD workflow .yaml file
+# HOMEWORK
+
+name: CI/CD workflow HOMEWORK
+
+on: workflow_dispatch
+
+
+
+
+# Trigger workflow manually with input selection
+on:
+  workflow_dispatch:
+    inputs:
+      steps:
+        description: 'Select which steps to run in the pipeline.' # user choses which part of the pipeline to run
+        required: true # input must be provided
+        type: choice
+        options:
+          - integration
+          - all
+        default: all 
+
+
+
+jobs:
+  integration:
+    # Run integration if steps is 'all' or 'integration'
+    if: ${{ inputs.steps == 'all' || inputs.steps == 'integration' }}
+    name: checks_and_tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./polish-sentiment-app
+    steps:
+      - name: Checkout code repo
+        # this action clones current repository to the VM where our job is running
+        # https://github.com/actions/checkout
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install dependencies
+        run: uv sync --group integration
+
+      - name: Run ruff check
+        run: uv run ruff check
+
+      - name: Run pip-audit
+        run: uv run pip-audit --vulnerability-service pypi
+
+      - name: Run PyTest
+        run: uv run pytest tests
+
+  deployment:
+    # Run deployment only if steps is 'all' and integration job succeeded
+    if: ${{ inputs.steps == 'all' && needs.integration.result == 'success' }}
+    name: Deploy ONNX model
+    runs-on: ubuntu-latest
+    needs: integration
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./polish-sentiment-app
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install dependencies
+        run: uv sync --group deployment
+
+      - name: Download model artifacts
+        run: uv run python main.py --script download
+
+      - name: Export model to ONNX
+        run: uv run python main.py --script export
+
+      - name: Run docker conatiner
+        run: docker build -t polish-sentiment-app-onnx:latest .

@@ -1,8 +1,18 @@
 # our CI/CD workflow .yaml file
 
+
 name: CI/CD workflow
 
 on: workflow_dispatch
+
+
+
+on:
+  workflow_dispatch:
+    inputs:
+      steps:
+
+
 
 jobs:
   integration:
