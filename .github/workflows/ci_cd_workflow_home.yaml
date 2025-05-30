@@ -50,11 +50,11 @@ jobs:
         run: uv run pytest tests
 
   deployment:
-    # Run deployment only if steps is 'all' and integration job succeeded
-    if: ${{ inputs.steps == 'all' && needs.integration.result == 'success' }}
+    # Run deployment only if integration job finished successfully AND steps is 'all'
+    needs: integration  # This declares the dependency on the integration job
+    if: ${{ needs.integration.result == 'success' && inputs.steps == 'all' }}
     name: Deploy ONNX model
     runs-on: ubuntu-latest
-    needs: integration
     defaults:
       run:
         shell: bash
